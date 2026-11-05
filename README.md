@@ -126,4 +126,4 @@ GitHub: [@qtundeptraidut](https://github.com/qtundeptraidut)
 
 ## License
 
-Add a license (e.g. MIT) via *Add file > Create new file > LICENSE*.
+
