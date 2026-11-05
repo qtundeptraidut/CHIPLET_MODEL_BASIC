@@ -1,0 +1,5 @@
+# Generated simulation artifacts
+build/
+*.vcd
+*.vvp
+*.log

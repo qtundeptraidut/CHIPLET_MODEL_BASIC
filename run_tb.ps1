@@ -1,5 +1,5 @@
-# Compile and run the self-checking chiplet testbench with Icarus Verilog.
-# Usage (from D:\VERILOG):  powershell -ExecutionPolicy Bypass -File .\run_tb.ps1
+# Compile and run the self-checking Chiplet Interconnect testbench.
+# Usage: powershell -ExecutionPolicy Bypass -File .\run_tb.ps1
 
 $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -14,18 +14,18 @@ if (-not (Test-Path $vvp))      { throw "vvp not found at $vvp" }
 New-Item -ItemType Directory -Force -Path "$root\build" | Out-Null
 
 $rtl = @(
-    "core.v",
-    "packet_generator.v",
-    "tx.v",
-    "fault_injector.v",
-    "multi_lane_link.v",
-    "rx.v",
-    "packet_checker.v",
-    "link_controller.v",
-    "error_monitor.v"
-)
+    "rtl\core.v",
+    "rtl\packet_generator.v",
+    "rtl\tx.v",
+    "rtl\fault_injector.v",
+    "rtl\multi_lane_link.v",
+    "rtl\rx.v",
+    "rtl\packet_checker.v",
+    "rtl\link_controller.v",
+    "rtl\error_monitor.v"
+) | ForEach-Object { Join-Path $root $_ }
 
-& $iverilog -g2012 -Wno-timescale -o "$root\build\tb_chiplet.vvp" "$root\tb_chiplet.v" ($rtl | ForEach-Object { Join-Path $root $_ })
+& $iverilog -g2012 -Wno-timescale -o "$root\build\tb_chiplet.vvp" "$root\tb\tb_chiplet.v" @rtl
 if ($LASTEXITCODE -ne 0) { throw "iverilog compile failed" }
 
 & $vvp "$root\build\tb_chiplet.vvp"
