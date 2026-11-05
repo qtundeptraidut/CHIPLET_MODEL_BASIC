@@ -2,7 +2,7 @@
 
 Verilog model of a chiplet die-to-die interconnect link, built for my research on *Chiplet Statistical Testing* at Danang University of Science and Technology. The link generates traffic, injects configurable faults on selected lanes and measures packet/lane error rates, with a self-checking testbench in Icarus Verilog.
 
-The goal is to compare sampling strategies (random, uniform and BONR) for mapping the safe operating region of the link as a function of fault parameters.
+The goal is to compare three sampling strategies — random, uniform (grid) and **BONR** (Boundary-Oriented Neighborhood Refinement: concentrates samples and refines neighbors around the `p_fail = θ` boundary instead of spreading them evenly over the parameter space) — to map the safe operating region of the link as a function of fault parameters such as `fault_rate`, `burst_length` and `fault_duration`.
 
 ## Status
 
@@ -19,11 +19,15 @@ flowchart LR
     FI --> ML[multi_lane_link]
     ML --> RX[rx]
     RX --> PC[packet_checker]
-    LC[link_controller] -. state / retrain .-> TX
-    LC -.-> RX
     PC --> EM[error_monitor]
-    FI -. injected faults .-> EM
+    LC[link_controller] -. link_up / lane_enable .-> TX
+    LC -.-> RX
+    LC -.-> ML
+    LC -.-> EM
+    FI -. fault_active .-> EM
 ```
+
+Arrows follow the instantiations in `rtl/core.v`: `packet_generator -> tx -> fault_injector -> multi_lane_link -> rx` is the data path; `packet_checker` taps `rx_data`/`rx_valid`; `link_controller` drives `link_up`/`lane_enable` into tx/rx/multi_lane_link and `error_monitor`; `fault_injector` reports `fault_active` into `error_monitor`. `retrain_req` is an output only — nothing inside the core consumes it.
 
 ## Repository layout
 
@@ -33,19 +37,13 @@ tb/     Self-checking testbench
 build/  Generated simulation artifacts (not tracked)
 ```
 
-| File | Role |
+Only the non-obvious files:
+
+| File | Why it exists |
 |---|---|
-| `rtl/top.v` | FPGA physical top (`chiplet_interconnect_top`): real I/O only, fixed demo configuration |
-| `rtl/core.v` | `chiplet_interconnect_core`: integrates all blocks; use this directly for Cocotb |
-| `rtl/packet_generator.v` | Traffic source (rate set by `traffic_level`) |
-| `rtl/tx.v` / `rtl/rx.v` | Transmitter / receiver |
-| `rtl/multi_lane_link.v` | Lane model between TX and RX |
-| `rtl/fault_injector.v` | Configurable fault injection on selected lanes |
-| `rtl/packet_checker.v` | Verifies received packets |
-| `rtl/link_controller.v` | Link training / state machine / retrain request |
-| `rtl/error_monitor.v` | Packet and error statistics |
-| `tb/tb_chiplet.v` | Self-checking testbench |
-| `run_tb.ps1` | Compile and run script (Windows + Icarus Verilog) |
+| `rtl/core.v` | `chiplet_interconnect_core` — integrates all blocks; use this for Cocotb |
+| `rtl/top.v` | FPGA physical top (`chiplet_interconnect_top`); real I/O only, fixed demo configuration |
+| `rtl/link_controller.v` | Link training / state machine; `link_up` and `lane_enable` are its outputs |
 
 ## Configuration
 
@@ -78,17 +76,8 @@ iverilog -g2012 -Wno-timescale -o build/tb_chiplet.vvp \
 vvp build/tb_chiplet.vvp
 ```
 
-## Research context
-
-Goal: map the safe operating region of the link as a function of fault parameters (e.g. `fault_rate`, `burst_length`, `fault_duration`), separated from the unsafe one by the boundary `p_fail = θ`. Three sampling strategies are compared:
-
-1. **Random** sampling
-2. **Uniform** (grid) sampling
-3. **BONR** (Boundary-Oriented Neighborhood Refinement): concentrates samples and refines neighboring points around the `p_fail = θ` boundary
-
-Results: _to be added (figures, number of samples vs boundary error)._
-
 ## Author
 
 **Vo Quoc Tuan** — Integrated Circuit Design, Danang University of Science and Technology
-GitHub: [@qtundeptraidut](https://github.com/qtundeptraidut)
+
+GitHub: [tuanvo-ic](https://github.com/tuanvo-ic)
