@@ -1,6 +1,6 @@
 # CHIPLET_MODEL_BASIC
 
-Verilog model of a chiplet die-to-die interconnect link, built for my research on *Chiplet Statistical Testing* at Danang University of Science and Technology. The link generates traffic, injects configurable faults on selected lanes and measures packet/lane error rates, with a self-checking testbench in Icarus Verilog.
+Verilog model of a chiplet die-to-die interconnect link, built for my research. The link generates traffic, injects configurable faults on selected lanes and measures packet/lane error rates, with a self-checking testbench in Icarus Verilog.
 
 The goal is to compare three sampling strategies — random, uniform (grid) and **BONR** (Boundary-Oriented Neighborhood Refinement: concentrates samples and refines neighbors around the `p_fail = θ` boundary instead of spreading them evenly over the parameter space) — to map the safe operating region of the link as a function of fault parameters such as `fault_rate`, `burst_length` and `fault_duration`.
 
